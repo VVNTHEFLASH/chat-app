@@ -1,12 +1,12 @@
-import Link from "next/link";
+import SocketExample from '../components/SocketExample';
 
-export default function Home() {
+const HomePage = () => {
   return (
     <div>
-      <span>Chat app</span>
-      <Link href={'/chat'}>
-      <span>Go to chat</span>
-      </Link>
+      <h1>Welcome to the Home Page!</h1>
+      <SocketExample />
     </div>
   );
-}
+};
+
+export default HomePage;
