@@ -3,23 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node server.ts",
-    "build": "next build && tsc server.ts --outDir dist",
+    "dev": "ts-node --project tsconfig.server.json server.ts",
+    "build": "next build && tsc -p tsconfig.server.json",
+    "clean-build": "rm -rf dist yarn build",
     "start": "NODE_ENV=production node dist/server.js",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "express": "^4.21.1",
+    "express": "4.21.1",
     "next": "15.0.3",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "^22.9.3",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "postcss": "^8",

@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "outDir": "./dist",   // Specify the directory for the compiled files
+      "noEmit": false
+    },
+    "include": ["server.ts"]
+  }
+  
