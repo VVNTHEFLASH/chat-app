@@ -16,15 +16,24 @@ app.prepare().then(() => {
 
   const io = new socketIo.Server(httpServer);
 
+  let localDb: {
+    rooms: {
+      name: string;
+      users: string;
+    }[]
+  } = {
+    rooms: []
+  }
+
   io.on('connection', (socket) => {
-    console.log('A user connected')
+    console.log('A user connected', socket.id ?? "NA")
 
     socket.on('message', (msg) => {
-      console.log('Message from client:', msg);
+      console.log(socket.id, 'Message from client:', msg);
     })
 
     socket.on('disconnect', () => {
-      console.log('A user disconnected')
+      console.log('A user disconnected', socket.id)
     })
   })
 

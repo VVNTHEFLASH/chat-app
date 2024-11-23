@@ -1,11 +1,9 @@
+import ChatScreen from 'chat-app/components/ChatScreen';
 import SocketExample from '../components/SocketExample';
 
 const HomePage = () => {
   return (
-    <div>
-      <h1>Welcome to the Home Page!</h1>
-      <SocketExample />
-    </div>
+    <ChatScreen />
   );
 };
 
