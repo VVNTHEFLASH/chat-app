@@ -3,7 +3,9 @@ import SocketExample from '../components/SocketExample';
 
 const HomePage = () => {
   return (
-    <ChatScreen />
+    <>
+      <ChatScreen />
+    </>
   );
 };
 

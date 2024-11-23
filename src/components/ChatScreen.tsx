@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { DefaultEventsMap } from 'socket.io';
+import { io, Socket } from 'socket.io-client';
 
-interface ChatDataType {
+export interface ChatDataType {
     name: string;
     room: string;
+}
+
+export interface messagePayloadType {
+    message: string;
+    chatData: ChatDataType;
 }
 
 const initialChatData: ChatDataType = {
@@ -13,11 +20,14 @@ const initialChatData: ChatDataType = {
 }
 
 export default function ChatScreen() {
-
+    const socketRef = useRef<Socket | null>(null); // Persist socket instance
+    
     const [isJoined, setIsJoined] = useState(false)
     const [chatData, setChatData] = useState<ChatDataType>(initialChatData);
     const [message, setMessage] = useState("")
-    const [messages, setMessages] = useState<string[]>([])
+    const [messages, setMessages] = useState<{
+        name: string; message: string
+    }[]>([])
     function handleChatDataChange(key: string, value: string) {
         setChatData((prev) => {
             return { ...prev, [key]: value };
@@ -47,13 +57,35 @@ export default function ChatScreen() {
     }
 
     function pressSend() {
-        if(!message.trim()) {
+        if (!message.trim()) {
             return
         }
-        setMessages((prev) => {
-            return [...prev, message]
-        })
+
+        if (socketRef.current) {
+            console.log('Sending the message...')
+            const messagePayload = {
+                message,
+                chatData
+            }
+            socketRef.current.emit('message', messagePayload);
+            console.log('Message is sent', messagePayload)
+            setMessage('')
+        }
     }
+
+    useEffect(() => {
+        const socket = io();
+        socketRef.current = socket;
+
+        socket.on('message', (roomMessages: { name: string; message: string }[]) => {
+            console.log("Message from server: ", roomMessages);
+            setMessages(roomMessages)
+        })
+
+        return () => {
+            socket.off('message');
+        }
+    }, [])
 
     return (
         <div className='flex flex-col justify-between h-screen'>
@@ -73,8 +105,8 @@ export default function ChatScreen() {
                     <h1 className='bg-white rounded-md pl-5 my-2 text-black'>Welcome to the Chat app!</h1>
                     {messages.map((item, index) => {
                         return (
-                            <div key={item+index}>
-                                <h1 className='bg-white rounded-md pl-5 my-2 text-black'>{item}</h1>
+                            <div key={item.name + index}>
+                                <h1 className='bg-white rounded-md pl-5 my-2 text-black'>{item.message}</h1>
                             </div>
                         )
                     })}
@@ -89,7 +121,7 @@ export default function ChatScreen() {
                     type="text" value={message}
                     placeholder='Your message' className='text-black bg-white px-3 mx-2 rounded-md' />
                 <button onClick={pressSend}
-                type='button' className='bg-blue-400 px-3 mx-2 rounded-md'>Send</button>
+                    type='button' className='bg-blue-400 px-3 mx-2 rounded-md'>Send</button>
             </footer>}
         </div>
     )

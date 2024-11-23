@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import next from 'next';
 import http from 'http';
 import socketIo from 'socket.io';
+import { ChatDataType, messagePayloadType } from 'chat-app/components/ChatScreen';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -25,11 +26,32 @@ app.prepare().then(() => {
     rooms: []
   }
 
+  const messages: Record<string, { name: string; message: string }[]> = {}; // Room-specific message storage
+
+
   io.on('connection', (socket) => {
     console.log('A user connected', socket.id ?? "NA")
 
-    socket.on('message', (msg) => {
-      console.log(socket.id, 'Message from client:', msg);
+    socket.on('message', (payload: messagePayloadType) => {
+      console.log(socket.id, 'Message from client:', payload);
+      const { room, name } = payload.chatData;
+      const { message } = payload;
+      console.log(`${name} sent a message to room ${room}: ${message}`);
+
+      if (!messages[room]) {
+        messages[room] = []
+      }
+      messages[room].push({ name, message });
+
+      io.to(room).emit('message', messages[room])
+    })
+
+    socket.on('joinRoom', ({ room }) => {
+      socket.join(room);
+      console.log(`User joined room: ${room}`)
+      if (messages[room]) {
+        socket.emit('message', messages[room])
+      }
     })
 
     socket.on('disconnect', () => {
