@@ -22,11 +22,17 @@ app.prepare().then(() => {
     name: string;
   }>> = {};
 
-  const messages: Record<string, { name: string; message: string }[]> = {}; // Room-specific message storage
+  const messages: Record<string, {
+    id: string;
+    name: string;
+    message: string;
+    time: string;
+  }[]> = {};
 
   io.on('connection', (socket) => {
-    console.log('A user connected', socket.id ?? "NA")
-    // This will make sure to update the active rooms in initial state
+
+    console.log('A user connected', socket.id ?? "NA");
+    // This will make sure to update the active rooms in the initial state
     io.emit('activeRooms', Object.keys(rooms));
 
     socket.on('message', (payload: messagePayloadType) => {
@@ -36,35 +42,59 @@ app.prepare().then(() => {
       console.log(`${socket.id}_${name} sent a message to room ${room}: ${message}`);
 
       if (!messages[room]) {
-        messages[room] = []
+        messages[room] = [];
       }
-      messages[room].push({ name, message });
+      messages[room].push({
+        name, message, id: socket.id,
+        time: new Date().toISOString()
+      });
 
-      io.to(room).emit('message', messages[room])
-    })
+      io.to(room).emit('message', messages[room]);
+    });
 
-    socket.on('joinRoom', (data) => {
+    socket.on('joinRoom', (data: {
+      room: string;
+      name: string;
+    }) => {
       if (!rooms[data.room]) {
         rooms[data.room] = new Set();
+      }
+      if (findUserById(data.room, socket.id)) {
+        return;
       }
       rooms[data.room].add({
         id: socket.id,
         name: data.name
       });
       socket.join(data.room);
-      console.log(`User joined room: ${JSON.stringify(data, null, 2)}`)
-      if (rooms[data.room]) {
 
-        console.log(Object.keys(rooms), "Active Rooms")
-        console.log(Array.from(rooms[data.room]), "Users in Room")
+      if (rooms[data.room]) {
         io.emit('activeRooms', Object.keys(rooms));
         io.to(data.room).emit('usersInRoom', Array.from(rooms[data.room]));
       }
+
+      // Ensure that the room has a message history array initialized
+      if (!messages[data.room]) {
+        messages[data.room] = []; // Initialize the array if it doesn't exist
+      }
+      // Send the existing messages to the newly joined user
       if (messages[data.room]) {
-        socket.emit('message', messages[data.room])
+        socket.emit('message', messages[data.room]);
       }
 
-    })
+      // Append welcome message to the end of the room chat
+      const welcomeMessage = {
+        id: "system",
+        name: "System",
+        message: `${data.name} has joined the room.`,
+        time: new Date().toISOString()
+      };
+
+      messages[data.room].push(welcomeMessage);
+
+      // Emit the updated list of messages (including the welcome message)
+      io.to(data.room).emit('message', messages[data.room]);
+    });
 
     socket.on('leaveRoom', ({ room, name }) => {
       if (rooms[room]) {
@@ -77,7 +107,7 @@ app.prepare().then(() => {
 
         // Notify all clients about the updated room and user lists
         io.emit('activeRooms', Object.keys(rooms));
-        if(rooms[room]) {
+        if (rooms[room]) {
           io.to(room).emit('usersInRoom', Array.from(rooms[room]));
         }
       }
@@ -89,7 +119,6 @@ app.prepare().then(() => {
       // Remove the user from all rooms
       for (const room of Object.keys(rooms)) {
         for (const user of rooms[room]) {
-          console.log(user.id, "<==>", socket.id)
           if (user.id === socket.id) { // Use `socket.id` or custom logic for user tracking
             rooms[room].delete(user);
             break;
@@ -108,7 +137,7 @@ app.prepare().then(() => {
         }
       }
     });
-  })
+  });
 
   // Example of a custom API route
   server.get('/api/hello', (req, res) => {
@@ -119,6 +148,21 @@ app.prepare().then(() => {
   server.all('*', (req, res) => {
     return handle(req, res);
   });
+
+  function findUserById(roomName: string, userId: string) {
+    const room = rooms[roomName];
+    if (!room) {
+      return null; // Room does not exist
+    }
+
+    for (const user of room) {
+      if (user.id === userId) {
+        return user; // Found the user
+      }
+    }
+
+    return null; // User not found
+  }
 
   httpServer.listen(PORT, (err?: Error) => {
     if (err) throw err;
