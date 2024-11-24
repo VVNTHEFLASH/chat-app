@@ -17,16 +17,10 @@ app.prepare().then(() => {
 
   const io = new socketIo.Server(httpServer);
 
-  // let localDb: {
-  //   rooms: {
-  //     name: string;
-  //     users: string;
-  //   }[]
-  // } = {
-  //   rooms: []
-  // }
-
-  const rooms: Record<string, Set<string>> = {};
+  const rooms: Record<string, Set<{
+    id: string;
+    name: string;
+  }>> = {};
 
   const messages: Record<string, { name: string; message: string }[]> = {}; // Room-specific message storage
 
@@ -39,7 +33,7 @@ app.prepare().then(() => {
       console.log(socket.id, 'Message from client:', payload);
       const { room, name } = payload.chatData;
       const { message } = payload;
-      console.log(`${name} sent a message to room ${room}: ${message}`);
+      console.log(`${socket.id}_${name} sent a message to room ${room}: ${message}`);
 
       if (!messages[room]) {
         messages[room] = []
@@ -53,7 +47,10 @@ app.prepare().then(() => {
       if (!rooms[data.room]) {
         rooms[data.room] = new Set();
       }
-      rooms[data.room].add(data.name);
+      rooms[data.room].add({
+        id: socket.id,
+        name: data.name
+      });
       socket.join(data.room);
       console.log(`User joined room: ${JSON.stringify(data, null, 2)}`)
       if (rooms[data.room]) {
@@ -80,7 +77,9 @@ app.prepare().then(() => {
 
         // Notify all clients about the updated room and user lists
         io.emit('activeRooms', Object.keys(rooms));
-        io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+        if(rooms[room]) {
+          io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+        }
       }
     });
 
@@ -90,7 +89,8 @@ app.prepare().then(() => {
       // Remove the user from all rooms
       for (const room of Object.keys(rooms)) {
         for (const user of rooms[room]) {
-          if (user === socket.id) { // Use `socket.id` or custom logic for user tracking
+          console.log(user.id, "<==>", socket.id)
+          if (user.id === socket.id) { // Use `socket.id` or custom logic for user tracking
             rooms[room].delete(user);
             break;
           }
@@ -103,7 +103,9 @@ app.prepare().then(() => {
 
         // Notify about updated rooms and users
         io.emit('activeRooms', Object.keys(rooms));
-        io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+        if (rooms[room]) {
+          io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+        }
       }
     });
   })

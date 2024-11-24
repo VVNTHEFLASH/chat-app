@@ -30,7 +30,10 @@ export default function ChatScreen() {
     }[]>([])
 
     const [activeRooms, setActiveRooms] = useState<string[]>([]);
-    const [usersInRoom, setUsersInRoom] = useState<string[]>([]);
+    const [usersInRoom, setUsersInRoom] = useState<{
+        id: string;
+        name: string;
+    }[]>([]);
 
 
     function handleChatDataChange(key: string, value: string) {
@@ -108,7 +111,10 @@ export default function ChatScreen() {
         });
 
         // Listen for updates on users in the current room
-        socket.on('usersInRoom', (users: string[]) => {
+        socket.on('usersInRoom', (users: {
+            id: string;
+            name: string;
+        }[]) => {
             console.log('Users in room:', users);
             setUsersInRoom(users);
         });
@@ -169,8 +175,8 @@ export default function ChatScreen() {
                     <div>
                         <h2>Users in Room</h2>
                         <ul>
-                            {usersInRoom.map((user, index) => (
-                                <li key={index}>{user}</li>
+                            {usersInRoom.map((user) => (
+                                <li key={user.id}>{user.name}</li>
                             ))}
                         </ul>
                     </div>
