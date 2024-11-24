@@ -187,11 +187,18 @@ export default function ChatScreen() {
 
                 {/* Display Messages */}
                 {messages.map((item, index) => {
-                    return item.id.toLocaleLowerCase() === 'system' ? (
+                    return item.id.toLocaleLowerCase() === 'system' ? 
+                    item.name === chatData.name ? (
+                        <div key={item.name + index}>
+                            <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{
+                                `You have joined the ${chatData.room}.`}</h1>
+                        </div>
+                    ) : (
                         <div key={item.name + index}>
                             <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{item.message}</h1>
                         </div>
-                    ) : item.name === chatData.name ? (
+                    ) 
+                    : item.name === chatData.name ? (
                         <div key={item.name + index} className="flex my-2 justify-end">
                             <div className="flex flex-col w-1/2 item-end rounded-md overflow-hidden">
                                 <span className="px-5 bg-green-600 flex flex-row justify-between">

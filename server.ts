@@ -27,7 +27,10 @@ app.prepare().then(() => {
     name: string;
     message: string;
     time: string;
+    type: 'join' | 'leave' | null
   }[]> = {};
+
+  type MessageType = typeof messages[keyof typeof messages][0];
 
   io.on('connection', (socket) => {
 
@@ -46,7 +49,8 @@ app.prepare().then(() => {
       }
       messages[room].push({
         name, message, id: socket.id,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        type: null
       });
 
       io.to(room).emit('message', messages[room]);
@@ -83,11 +87,12 @@ app.prepare().then(() => {
       }
 
       // Append welcome message to the end of the room chat
-      const welcomeMessage = {
+      const welcomeMessage: MessageType = {
         id: "system",
-        name: "System",
+        name: data.name,
         message: `${data.name} has joined the room.`,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        type: 'join'
       };
 
       messages[data.room].push(welcomeMessage);
