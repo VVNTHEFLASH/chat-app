@@ -23,6 +23,7 @@ export default function ChatScreen() {
     const socketRef = useRef<Socket | null>(null); // Persist socket instance
 
     const [chatData, setChatData] = useState<ChatDataType>(initialChatData);
+    const [typingStatus, setTypingStatus] = useState('');
 
     const [message, setMessage] = useState("");
     const [name, setName] = useState('')
@@ -49,6 +50,12 @@ export default function ChatScreen() {
     function handleMessageChange({ value }: { value: string }) {
         console.log(value, "Typing...")
         setMessage(value)
+        if (value) {
+            socketRef.current?.emit('typing', { room: chatData.room, name: chatData.name })
+        }
+        else {
+            socketRef.current?.emit('stopTyping', { room: chatData.room })
+        }
     }
 
     function pressJoin() {
@@ -81,6 +88,8 @@ export default function ChatScreen() {
             if (room && name) {
                 socketRef.current.emit('leaveRoom', { room, name });
                 setUsersInRoom([]);
+                socketRef.current.emit('stopTyping', { room })
+
             }
         }
         window.location.reload()
@@ -102,6 +111,7 @@ export default function ChatScreen() {
             }
             socketRef.current.emit('message', messagePayload);
             console.log('Message is sent', messagePayload)
+            socketRef.current.emit('stopTyping', { room: chatData.room })
             setMessage('')
         }
     }
@@ -135,8 +145,13 @@ export default function ChatScreen() {
             alert(data.message)
         })
 
+        socket.on('userTyping', (statusMessage) => {
+            setTypingStatus(statusMessage);
+        });
+
         return () => {
             socket.off('message');
+            socket.off('userTyping');
         }
     }, [])
 
@@ -183,36 +198,36 @@ export default function ChatScreen() {
 
                 {/* Display Messages */}
                 {messages.map((item, index) => {
-                    return item.id.toLocaleLowerCase() === 'system' ? 
-                    item.name === chatData.name ? (
-                        <div key={item.name + index}>
-                            <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{
-                                `You have joined the ${chatData.room}.`}</h1>
-                        </div>
-                    ) : (
-                        <div key={item.name + index}>
-                            <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{item.message}</h1>
-                        </div>
-                    ) 
-                    : item.name === chatData.name ? (
-                        <div key={item.name + index} className="flex my-2 justify-end">
-                            <div className="flex flex-col w-1/2 item-end rounded-md overflow-hidden">
-                                <span className="px-5 bg-green-600 flex flex-row justify-between">
+                    return item.id.toLocaleLowerCase() === 'system' ?
+                        item.name === chatData.name ? (
+                            <div key={item.name + index}>
+                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{
+                                    `You have joined the ${chatData.room}.`}</h1>
+                            </div>
+                        ) : (
+                            <div key={item.name + index}>
+                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{item.message}</h1>
+                            </div>
+                        )
+                        : item.name === chatData.name ? (
+                            <div key={item.name + index} className="flex my-2 justify-end">
+                                <div className="flex flex-col w-1/2 item-end rounded-md overflow-hidden">
+                                    <span className="px-5 bg-green-600 flex flex-row justify-between">
+                                        <p>{item.name}</p>
+                                        <p>{formatTime(item.time)}</p>
+                                    </span>
+                                    <h1 className="bg-white px-5 py-1 text-black">{item.message}</h1>
+                                </div>
+                            </div>
+                        ) : (
+                            <div key={item.name + index} className="flex flex-col my-2 rounded-md overflow-hidden w-1/2">
+                                <span className="px-5 bg-blue-600 flex flex-row justify-between">
                                     <p>{item.name}</p>
                                     <p>{formatTime(item.time)}</p>
                                 </span>
                                 <h1 className="bg-white px-5 py-1 text-black">{item.message}</h1>
                             </div>
-                        </div>
-                    ) : (
-                        <div key={item.name + index} className="flex flex-col my-2 rounded-md overflow-hidden w-1/2">
-                            <span className="px-5 bg-blue-600 flex flex-row justify-between">
-                                <p>{item.name}</p>
-                                <p>{formatTime(item.time)}</p>
-                            </span>
-                            <h1 className="bg-white px-5 py-1 text-black">{item.message}</h1>
-                        </div>
-                    );
+                        );
                 })}
             </main>
 
@@ -230,6 +245,7 @@ export default function ChatScreen() {
                 </div>
 
                 {/* Message Input & Send Button */}
+                {typingStatus && <p className='my-2'>{typingStatus}</p>}
                 <div className="flex flex-row w-full gap-2">
                     <input
                         onChange={({ target }) => handleMessageChange(target)}

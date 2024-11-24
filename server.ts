@@ -118,6 +118,18 @@ app.prepare().then(() => {
       }
     });
 
+    // When a user starts typing
+    socket.on('typing', (data: { room: string, name: string }) => {
+      // Broadcast the typing status to the users in the room (except the sender)
+      socket.to(data.room).emit('userTyping', `${data.name} is typing...`);
+    });
+
+    // When a user stops typing
+    socket.on('stopTyping', (data: { room: string }) => {
+      // Remove the typing status when the user stops typing
+      socket.to(data.room).emit('userTyping', '');
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
 
