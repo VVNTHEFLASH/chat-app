@@ -1,18 +1,8 @@
 'use client'
-import { useEffect, useState } from "react";
+import { } from "react";
 
 export default function Chat() {
 
-    const [isProduction, setIsProduction] = useState<boolean | null>(null);
-
-    useEffect(() => {
-        checkIsProduction()
-    }, [])
-
-    function checkIsProduction():void {
-        const dev = process.env.NODE_ENV === 'production';
-        setIsProduction(dev)
-    }
     return (
       <div>
         <div className="flex flex-row justify-center">

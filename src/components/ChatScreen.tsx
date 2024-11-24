@@ -2,7 +2,6 @@
 
 import { formatTime } from 'chat-app/utils/helper';
 import React, { useEffect, useRef, useState } from 'react'
-import { DefaultEventsMap } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 
 export interface ChatDataType {
@@ -23,7 +22,6 @@ const initialChatData: ChatDataType = {
 export default function ChatScreen() {
     const socketRef = useRef<Socket | null>(null); // Persist socket instance
 
-    const [isJoined, setIsJoined] = useState(false)
     const [chatData, setChatData] = useState<ChatDataType>(initialChatData);
 
     const [message, setMessage] = useState("");
@@ -61,7 +59,6 @@ export default function ChatScreen() {
         if (!chatData.name.trim() || !chatData.room.trim()) {
             return alert("Please enter your name and chat room name")
         }
-        setIsJoined(true)
         // Emit joinRoom event to the server
         if (socketRef.current) {
             socketRef.current.emit("joinRoom", { room: chatData.room, name: chatData.name });
@@ -73,7 +70,6 @@ export default function ChatScreen() {
     function pressReset() {
         handleLeaveRoom()
         setChatData(initialChatData)
-        setIsJoined(false)
         setMessage('')
         setName('');
         setRoom('');
