@@ -50,7 +50,7 @@ export default function ChatScreen() {
             return
         }
         if (!chatData.name.trim() || !chatData.room.trim()) {
-            return
+            return alert("Please enter your name and chat room name")
         }
         setIsJoined(true)
         // Emit joinRoom event to the server
@@ -74,11 +74,15 @@ export default function ChatScreen() {
                 setUsersInRoom([]);
             }
         }
+        window.location.reload()
     };
 
     function pressSend() {
         if (!message.trim()) {
-            return
+            return 
+        }
+        if (!chatData.name.trim() || !chatData.room.trim()) {
+            return alert("Please enter your name and chat room name")
         }
 
         if (socketRef.current) {
@@ -174,7 +178,7 @@ export default function ChatScreen() {
                 <input onChange={({ target }) => handleMessageChange(target)}
                     type="text" value={message}
                     placeholder='Your message' className='text-black bg-white px-3 mx-2 rounded-md' />
-                <button onClick={pressSend}
+                <button onClick={pressSend} disabled={!message}
                     type='button' className='bg-blue-400 px-3 mx-2 rounded-md'>Send</button>
             </footer>
         </div>

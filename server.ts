@@ -32,6 +32,8 @@ app.prepare().then(() => {
 
   io.on('connection', (socket) => {
     console.log('A user connected', socket.id ?? "NA")
+    // This will make sure to update the active rooms in initial state
+    io.emit('activeRooms', Object.keys(rooms));
 
     socket.on('message', (payload: messagePayloadType) => {
       console.log(socket.id, 'Message from client:', payload);
@@ -55,11 +57,16 @@ app.prepare().then(() => {
       socket.join(data.room);
       console.log(`User joined room: ${JSON.stringify(data, null, 2)}`)
       if (rooms[data.room]) {
+
+        console.log(Object.keys(rooms), "Active Rooms")
+        console.log(Array.from(rooms[data.room]), "Users in Room")
         io.emit('activeRooms', Object.keys(rooms));
+        io.to(data.room).emit('usersInRoom', Array.from(rooms[data.room]));
       }
       if (messages[data.room]) {
         socket.emit('message', messages[data.room])
       }
+
     })
 
     socket.on('leaveRoom', ({ room, name }) => {
