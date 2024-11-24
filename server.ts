@@ -17,17 +17,18 @@ app.prepare().then(() => {
 
   const io = new socketIo.Server(httpServer);
 
-  let localDb: {
-    rooms: {
-      name: string;
-      users: string;
-    }[]
-  } = {
-    rooms: []
-  }
+  // let localDb: {
+  //   rooms: {
+  //     name: string;
+  //     users: string;
+  //   }[]
+  // } = {
+  //   rooms: []
+  // }
+
+  const rooms: Record<string, Set<string>> = {};
 
   const messages: Record<string, { name: string; message: string }[]> = {}; // Room-specific message storage
-
 
   io.on('connection', (socket) => {
     console.log('A user connected', socket.id ?? "NA")
@@ -46,17 +47,58 @@ app.prepare().then(() => {
       io.to(room).emit('message', messages[room])
     })
 
-    socket.on('joinRoom', ({ room }) => {
-      socket.join(room);
-      console.log(`User joined room: ${room}`)
-      if (messages[room]) {
-        socket.emit('message', messages[room])
+    socket.on('joinRoom', (data) => {
+      if (!rooms[data.room]) {
+        rooms[data.room] = new Set();
+      }
+      rooms[data.room].add(data.name);
+      socket.join(data.room);
+      console.log(`User joined room: ${JSON.stringify(data, null, 2)}`)
+      if (rooms[data.room]) {
+        io.emit('activeRooms', Object.keys(rooms));
+      }
+      if (messages[data.room]) {
+        socket.emit('message', messages[data.room])
       }
     })
 
+    socket.on('leaveRoom', ({ room, name }) => {
+      if (rooms[room]) {
+        rooms[room].delete(name);
+
+        // If the room is empty, delete it
+        if (rooms[room].size === 0) {
+          delete rooms[room];
+        }
+
+        // Notify all clients about the updated room and user lists
+        io.emit('activeRooms', Object.keys(rooms));
+        io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+      }
+    });
+
     socket.on('disconnect', () => {
-      console.log('A user disconnected', socket.id)
-    })
+      console.log('User disconnected:', socket.id);
+
+      // Remove the user from all rooms
+      for (const room of Object.keys(rooms)) {
+        for (const user of rooms[room]) {
+          if (user === socket.id) { // Use `socket.id` or custom logic for user tracking
+            rooms[room].delete(user);
+            break;
+          }
+        }
+
+        // Clean up empty rooms
+        if (rooms[room].size === 0) {
+          delete rooms[room];
+        }
+
+        // Notify about updated rooms and users
+        io.emit('activeRooms', Object.keys(rooms));
+        io.to(room).emit('usersInRoom', Array.from(rooms[room]));
+      }
+    });
   })
 
   // Example of a custom API route
