@@ -156,43 +156,43 @@ export default function ChatScreen() {
     }, [])
 
     return (
-        <div className="flex flex-col justify-between h-screen items-center">
-            <header className="m-5 w-1/2">
+        <div className="flex flex-col h-[100dvh] min-h-0 items-center overflow-hidden">
+            <header className="w-full px-3 pt-3 pb-2 md:w-1/2">
                 {/* Header: Inputs and Buttons */}
-                <div className="flex flex-row gap-2 items-center mb-4">
+                <div className="flex flex-wrap gap-2 items-center">
                     <input
                         onChange={({ target }) => handleChatDataChange('name', target.value)}
                         type="text"
                         value={name}
                         placeholder="Your name"
-                        className="text-black bg-white px-3 py-2 rounded-md w-full sm:w-auto"
+                        className="text-black bg-white px-3 py-2 rounded-md flex-1 min-w-0"
                     />
                     <input
                         onChange={({ target }) => handleChatDataChange('room', target.value)}
                         type="text"
                         value={room}
                         placeholder="Chat room"
-                        className="text-black bg-white px-3 py-2 rounded-md w-full sm:w-auto"
+                        className="text-black bg-white px-3 py-2 rounded-md flex-1 min-w-0"
                     />
                     <button
                         onClick={pressJoin}
                         type="button"
-                        className="bg-green-400 px-3 py-2 rounded-md"
+                        className="bg-green-400 px-3 py-2 rounded-md shrink-0"
                     >
                         Join
                     </button>
                     <button
                         onClick={pressReset}
                         type="button"
-                        className="bg-red-500 px-3 py-2 rounded-md"
+                        className="bg-red-500 px-3 py-2 rounded-md shrink-0"
                     >
                         Reset
                     </button>
                 </div>
             </header>
 
-            <main className="my-5 p-1.5 bg-gray-700 rounded-md min-h-[75vh] max-h-[75vh] overflow-y-auto w-1/2">
-                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">
+            <main className="flex-1 min-h-0 p-1.5 bg-gray-700 rounded-md overflow-y-auto w-full px-3 md:w-1/2 my-2">
+                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black break-words">
                     Welcome to the Chat app!!!
                 </h1>
 
@@ -201,64 +201,64 @@ export default function ChatScreen() {
                     return item.id.toLocaleLowerCase() === 'system' ?
                         item.name === chatData.name ? (
                             <div key={item.name + index}>
-                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{
+                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black break-words">{
                                     `You have joined the ${chatData.room}.`}</h1>
                             </div>
                         ) : (
                             <div key={item.name + index}>
-                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black">{item.message}</h1>
+                                <h1 className="bg-white rounded-md px-5 py-1 my-2 text-black break-words">{item.message}</h1>
                             </div>
                         )
                         : item.name === chatData.name ? (
                             <div key={item.name + index} className="flex my-2 justify-end">
-                                <div className="flex flex-col w-1/2 item-end rounded-md overflow-hidden">
-                                    <span className="px-5 bg-green-600 flex flex-row justify-between">
-                                        <p>{item.name}</p>
-                                        <p>{formatTime(item.time)}</p>
+                                <div className="flex flex-col max-w-[75%] rounded-md overflow-hidden">
+                                    <span className="px-3 bg-green-600 flex flex-row justify-between gap-2 flex-wrap">
+                                        <p className="truncate max-w-[120px] sm:max-w-none">{item.name}</p>
+                                        <p className="shrink-0">{formatTime(item.time)}</p>
                                     </span>
-                                    <h1 className="bg-white px-5 py-1 text-black">{item.message}</h1>
+                                    <h1 className="bg-white px-3 py-1 text-black break-words">{item.message}</h1>
                                 </div>
                             </div>
                         ) : (
-                            <div key={item.name + index} className="flex flex-col my-2 rounded-md overflow-hidden w-1/2">
-                                <span className="px-5 bg-blue-600 flex flex-row justify-between">
-                                    <p>{item.name}</p>
-                                    <p>{formatTime(item.time)}</p>
+                            <div key={item.name + index} className="flex flex-col my-2 rounded-md overflow-hidden max-w-[75%]">
+                                <span className="px-3 bg-blue-600 flex flex-row justify-between gap-2 flex-wrap">
+                                    <p className="truncate max-w-[120px] sm:max-w-none">{item.name}</p>
+                                    <p className="shrink-0">{formatTime(item.time)}</p>
                                 </span>
-                                <h1 className="bg-white px-5 py-1 text-black">{item.message}</h1>
+                                <h1 className="bg-white px-3 py-1 text-black break-words">{item.message}</h1>
                             </div>
                         );
                 })}
             </main>
 
-            <footer className="m-5 w-1/2">
-                <div className="flex flex-col my-2.5">
-                    <div className="flex flex-row gap-2">
-                        <h2>Active Rooms:</h2>
-                        <p>{activeRooms.map((room) => room).join(', ')}</p>
+            <footer className="w-full px-3 pb-3 pt-1 md:w-1/2">
+                <div className="flex flex-col mb-2">
+                    <div className="flex flex-row gap-2 flex-wrap">
+                        <h2 className="shrink-0">Active Rooms:</h2>
+                        <p className="break-all">{activeRooms.map((room) => room).join(', ')}</p>
                     </div>
 
-                    <div className="flex flex-row gap-2">
-                        <h2>Users in Room</h2>
-                        <p>{usersInRoom.map((user) => user.name).join(', ')}</p>
+                    <div className="flex flex-row gap-2 flex-wrap">
+                        <h2 className="shrink-0">Users in Room</h2>
+                        <p className="break-all">{usersInRoom.map((user) => user.name).join(', ')}</p>
                     </div>
                 </div>
 
                 {/* Message Input & Send Button */}
-                {typingStatus && <p className='my-2'>{typingStatus}</p>}
+                {typingStatus && <p className='mb-2 text-sm'>{typingStatus}</p>}
                 <div className="flex flex-row w-full gap-2">
                     <input
                         onChange={({ target }) => handleMessageChange(target)}
                         type="text"
                         value={message}
                         placeholder="Your message"
-                        className="text-black bg-white px-3 py-1 mx-2 rounded-md flex-grow"
+                        className="text-black bg-white px-3 py-2 rounded-md flex-1 min-w-0"
                     />
                     <button
                         onClick={pressSend}
                         disabled={!message}
                         type="button"
-                        className="bg-blue-400 px-3 py-1 mx-2 rounded-md w-auto"
+                        className="bg-blue-400 px-3 py-2 rounded-md shrink-0"
                     >
                         Send
                     </button>

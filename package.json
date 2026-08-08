@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-     "dev": "ts-node-dev --respawn --ignore-watch .next --ignore-watch node_modules --project tsconfig.server.json server.ts",
+    "dev": "ts-node-dev --respawn --ignore-watch .next --ignore-watch node_modules --project tsconfig.server.json server.ts",
     "build": "next build && tsc -p tsconfig.server.json",
     "clean-build": "rm -rf dist yarn build",
     "start": "NODE_ENV=production node dist/server.js",
